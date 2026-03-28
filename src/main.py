@@ -7,6 +7,8 @@ from pathlib import Path
 
 from src.code_reviewer import SecurityCodeReviewer
 from src.scan_interpreter import SecurityScanInterpreter
+from src.code_reviewer_local import LocalSecurityCodeReviewer
+from src.scan_interpreter_local import LocalSecurityScanInterpreter
 
 
 def main():
@@ -23,6 +25,7 @@ def main():
     review_parser.add_argument("--language", default="python", help="Programming language")
     review_parser.add_argument("--context", default="", help="Additional context")
     review_parser.add_argument("--output", help="Output file path (JSON)")
+    review_parser.add_argument("--mode", default="llm", choices=["llm", "local"], help="Review mode: llm or local")
     
     # Scan Interpretation Command
     scan_parser = subparsers.add_parser("interpret", help="Interpret security scan results")
@@ -32,11 +35,13 @@ def main():
                             help="Type of security scan")
     scan_parser.add_argument("--context", default="", help="Additional context")
     scan_parser.add_argument("--output", help="Output file path (JSON)")
+    scan_parser.add_argument("--mode", default="llm", choices=["llm", "local"], help="Interpretation mode: llm or local")
     
     # Prioritize Command
     prioritize_parser = subparsers.add_parser("prioritize", help="Prioritize security findings")
     prioritize_parser.add_argument("--findings-file", required=True, help="Path to findings file")
     prioritize_parser.add_argument("--output", help="Output file path (JSON)")
+    prioritize_parser.add_argument("--mode", default="llm", choices=["llm", "local"], help="Prioritization mode: llm or local")
     
     args = parser.parse_args()
     
@@ -62,14 +67,19 @@ def handle_review(args):
         else:
             code = args.code
         
-        reviewer = SecurityCodeReviewer()
+        if args.mode == "local":
+            reviewer = LocalSecurityCodeReviewer()
+        else:
+            reviewer = SecurityCodeReviewer()
         result = reviewer.review_code(code, args.language, args.context)
         
         output = {
             "command": "review",
             "language": args.language,
-            "status": result["status"],
+            "mode": args.mode,
+            "status": result.get("status"),
             "review": result.get("review"),
+            "findings": result.get("findings"),
             "error": result.get("error"),
             "tokens_used": result.get("tokens_used")
         }
@@ -93,7 +103,11 @@ def handle_interpret(args):
         with open(args.scan_file, 'r') as f:
             scan_output = f.read()
         
-        interpreter = SecurityScanInterpreter()
+        if args.mode == "local":
+            interpreter = LocalSecurityScanInterpreter()
+        else:
+            interpreter = SecurityScanInterpreter()
+
         result = interpreter.interpret_scan_results(
             scan_output,
             args.scan_type,
@@ -103,7 +117,8 @@ def handle_interpret(args):
         output = {
             "command": "interpret",
             "scan_type": args.scan_type,
-            "status": result["status"],
+            "mode": args.mode,
+            "status": result.get("status"),
             "interpretation": result.get("interpretation"),
             "error": result.get("error"),
             "tokens_used": result.get("tokens_used")
@@ -128,12 +143,17 @@ def handle_prioritize(args):
         with open(args.findings_file, 'r') as f:
             findings = f.read()
         
-        interpreter = SecurityScanInterpreter()
+        if args.mode == "local":
+            interpreter = LocalSecurityScanInterpreter()
+        else:
+            interpreter = SecurityScanInterpreter()
+
         result = interpreter.prioritize_findings(findings)
         
         output = {
             "command": "prioritize",
-            "status": result["status"],
+            "mode": args.mode,
+            "status": result.get("status"),
             "prioritization": result.get("prioritization"),
             "error": result.get("error"),
             "tokens_used": result.get("tokens_used")

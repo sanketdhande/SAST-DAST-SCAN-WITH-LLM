@@ -60,9 +60,16 @@ LLM Proj/
 
 ### Security Code Review
 
-**Review a file:**
+The project supports both LLM mode (`--mode llm`) and local heuristic mode (`--mode local`).
+
+**Review a file (LLM mode):**
 ```bash
-python -m src.main review --code path/to/file.py --language python
+python -m src.main review --code path/to/file.py --language python --mode llm
+```
+
+**Review a file (local mode):**
+```bash
+python -m src.main review --code path/to/file.py --language python --mode local
 ```
 
 **Review code from stdin:**
@@ -77,21 +84,31 @@ python -m src.main review --code path/to/file.py --language python --output revi
 
 ### Interpret Security Scan Results
 
-**Interpret SAST scan results:**
+**Interpret SAST scan results (LLM):**
 ```bash
-python -m src.main interpret --scan-file sast_output.txt --scan-type sast
+python -m src.main interpret --scan-file sast_output.txt --scan-type sast --mode llm
 ```
 
-**Interpret dependency check:**
+**Interpret SAST scan results (local):**
 ```bash
-python -m src.main interpret --scan-file dependencies.json --scan-type dependency --context "Production environment"
+python -m src.main interpret --scan-file sast_output.txt --scan-type sast --mode local
+```
+
+**Interpret dependency check (local):**
+```bash
+python -m src.main interpret --scan-file dependencies.json --scan-type dependency --context "Production environment" --mode local
 ```
 
 ### Prioritize Security Findings
 
-**Prioritize findings:**
+**Prioritize findings (LLM):**
 ```bash
-python -m src.main prioritize --findings-file findings.txt --output priorities.json
+python -m src.main prioritize --findings-file findings.txt --output priorities.json --mode llm
+```
+
+**Prioritize findings (local):**
+```bash
+python -m src.main prioritize --findings-file findings.txt --output priorities.json --mode local
 ```
 
 ## Environment Variables
